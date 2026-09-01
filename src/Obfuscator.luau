@@ -13,6 +13,10 @@ local Printer = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/china-dev/cluau-austria/main/src/Printer.luau"
 ))()
 
+local Rename = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/china-dev/cluau-austria/main/src/transforms/Rename.luau"
+))()
+
 local Obfuscator = {}
 Obfuscator.__index = Obfuscator
 
@@ -31,6 +35,7 @@ export type ObfuscatorInstance = {
     tokenize: (self: ObfuscatorInstance, source: string) -> {any},
     parse: (self: ObfuscatorInstance, tokens: {any}) -> any,
     obfuscate: (self: ObfuscatorInstance, source: string) -> string,
+    getSeed: (self: ObfuscatorInstance) -> number,
 }
 
 local function generateSeed(): number
@@ -67,13 +72,19 @@ function Obfuscator:obfuscate(source: string): string
         "Austria CLUAU: source must be a string"
     )
 
+    -- Stage 1: Lexer
     local tokens = self:tokenize(source)
+
+    -- Stage 2: Parser
     local ast = self:parse(tokens)
 
-    -- Transformation pipeline.
-    -- Rename, Strings, Constants, ControlFlow, etc.
-    -- will be added here.
+    -- Stage 3: Transformations
 
+    if self.options.Rename then
+        ast = Rename.transform(ast, self.seed)
+    end
+
+    -- Stage 4: Printer
     return Printer.print(ast)
 end
 
